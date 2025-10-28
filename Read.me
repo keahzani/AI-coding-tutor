@@ -1,0 +1,322 @@
+# AI Coding Tutor - Setup and Deployment Guide
+
+## 📋 Project Overview
+
+This AI Coding Tutor is a personalized, state-aware educational chatbot that uses:
+- **Firebase** for authentication and data persistence
+- **Firestore** for storing user profiles and conversation history
+- **Google Gemini API** for LLM-powered tutoring
+- **Socratic Method** for guided learning (never gives direct answers)
+
+---
+
+## 🏗️ Project Structure
+
+```
+ai-coding-tutor/
+│
+├── index.html          # Main UI and layout
+├── app.js              # Application logic and API integration
+├── config.js           # Configuration file (YOU MUST EDIT THIS)
+└── README.md           # This file
+```
+
+---
+
+## 🚀 Setup Instructions
+
+### Step 1: Create a Firebase Project
+
+1. Go to [Firebase Console](https://console.firebase.google.com/)
+2. Click **"Add project"**
+3. Enter a project name (e.g., "AI-Coding-Tutor")
+4. Follow the setup wizard (you can disable Google Analytics if not needed)
+5. Click **"Create project"**
+
+### Step 2: Enable Firestore Database
+
+1. In your Firebase project, go to **"Build" > "Firestore Database"**
+2. Click **"Create database"**
+3. Choose **"Start in test mode"** (for development)
+4. Select a Cloud Firestore location (choose closest to your users)
+5. Click **"Enable"**
+
+### Step 3: Get Firebase Configuration
+
+1. In Firebase Console, go to **Project Settings** (gear icon)
+2. Scroll down to **"Your apps"** section
+3. Click the **Web icon (<//>)** to add a web app
+4. Register your app with a nickname (e.g., "Coding Tutor Web")
+5. Copy the `firebaseConfig` object that appears
+6. Paste these values into `config.js` under `__firebase_config`
+
+**Example:**
+```javascript
+const __firebase_config = {
+    apiKey: "AIzaSyB1234567890abcdefghijklmnop",
+    authDomain: "my-tutor-app.firebaseapp.com",
+    projectId: "my-tutor-app",
+    storageBucket: "my-tutor-app.appspot.com",
+    messagingSenderId: "123456789012",
+    appId: "1:123456789012:web:abcdef1234567890"
+};
+```
+
+### Step 4: Generate Custom Authentication Token
+
+**Option A: Use Firebase Admin SDK (Recommended for production)**
+
+1. Go to **Project Settings > Service Accounts**
+2. Click **"Generate new private key"**
+3. Save the JSON file securely
+4. Use the Admin SDK to generate custom tokens:
+
+```javascript
+// Node.js example
+const admin = require('firebase-admin');
+const serviceAccount = require('./path/to/serviceAccountKey.json');
+
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+});
+
+const uid = 'user123'; // Unique user ID
+const customToken = await admin.auth().createCustomToken(uid);
+console.log(customToken);
+```
+
+**Option B: For Testing Only**
+
+1. Go to **Authentication > Sign-in method**
+2. Enable **"Anonymous"** authentication
+3. Use this code in `app.js` (replace the signInWithCustomToken line):
+
+```javascript
+// TESTING ONLY - Replace authentication section
+await auth.signInAnonymously();
+currentUserId = auth.currentUser.uid;
+```
+
+### Step 5: Get Gemini API Key
+
+1. Go to [Google AI Studio](https://makersuite.google.com/app/apikey)
+2. Click **"Create API Key"**
+3. Select your Firebase project (or create a new one)
+4. Copy the API key
+5. Paste it into `config.js` under `__gemini_api_key`
+
+### Step 6: Update config.js
+
+Open `config.js` and replace all placeholder values:
+
+```javascript
+const __firebase_config = {
+    // YOUR FIREBASE CONFIG FROM STEP 3
+};
+
+const __initial_auth_token = "YOUR_CUSTOM_TOKEN_FROM_STEP_4";
+const __app_id = "coding_tutor_app"; // Keep this or customize
+const __gemini_api_key = "YOUR_GEMINI_API_KEY_FROM_STEP_5";
+```
+
+### Step 7: Update index.html
+
+Add the config.js script BEFORE app.js:
+
+```html
+<!-- Configuration -->
+<script src="config.js"></script>
+
+<!-- Application Logic -->
+<script src="app.js"></script>
+```
+
+### Step 8: Deploy Your Application
+
+**Option A: Local Testing**
+1. Open `index.html` directly in a browser, OR
+2. Use a local server:
+   ```bash
+   # Python 3
+   python -m http.server 8000
+   
+   # Node.js (with npx)
+   npx serve
+   ```
+3. Navigate to `http://localhost:8000`
+
+**Option B: Firebase Hosting (Recommended)**
+1. Install Firebase CLI:
+   ```bash
+   npm install -g firebase-tools
+   ```
+
+2. Login and initialize:
+   ```bash
+   firebase login
+   firebase init hosting
+   ```
+
+3. Select your Firebase project
+4. Set public directory to current folder (or `.`)
+5. Configure as single-page app: **No**
+6. Deploy:
+   ```bash
+   firebase deploy
+   ```
+
+**Option C: Other Hosting Services**
+- **Netlify**: Drag and drop your folder to [Netlify Drop](https://app.netlify.com/drop)
+- **Vercel**: Use the [Vercel CLI](https://vercel.com/docs/cli) or web interface
+- **GitHub Pages**: Push to a repository and enable Pages in settings
+
+---
+
+## 🔒 Security Considerations
+
+### For Production:
+
+1. **Firestore Security Rules**: Update rules in Firebase Console
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /artifacts/{appId}/users/{userId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
+```
+
+2. **API Key Protection**: 
+   - Use environment variables
+   - Implement backend proxy for API calls
+   - Set up API key restrictions in Google Cloud Console
+
+3. **Authentication**: 
+   - Use proper Firebase Authentication (Email/Password, Google Sign-In, etc.)
+   - Never hardcode auth tokens in production
+
+---
+
+## 📊 Firestore Data Structure
+
+The app stores data in this structure:
+
+```
+/artifacts/{__app_id}/users/{userId}/
+    ├── user_profile/
+    │   └── settings (document)
+    │       ├── proficiencyLevel: "Beginner" | "Intermediate" | "Advanced"
+    │       ├── learningGoal: string
+    │       └── preferredLanguage: string
+    │
+    └── conversations/ (collection)
+        ├── {auto-generated-id}
+        │   ├── role: "user" | "assistant"
+        │   ├── text: string
+        │   └── timestamp: timestamp
+        └── ...
+```
+
+---
+
+## 🎯 How It Works
+
+1. **User Authentication**: Firebase authenticates the user with a custom token
+2. **Profile Loading**: App loads user's proficiency level and learning goals from Firestore
+3. **System Prompt**: Builds a personalized teaching prompt based on user profile
+4. **Message Flow**:
+   - User sends message → Saved to Firestore
+   - App builds conversation history + system prompt
+   - Calls Gemini API with full context
+   - Assistant response → Saved to Firestore
+   - UI updates automatically via real-time listener
+
+5. **Socratic Method**: The tutor asks guiding questions instead of providing direct answers
+
+---
+
+## 🎓 Customization Options
+
+### Change Proficiency Level
+Modify in Firestore Console or add UI controls:
+- `Beginner`: Simple explanations, detailed definitions
+- `Intermediate`: Balance of concepts and technical terms  
+- `Advanced`: Technical terminology, best practices
+
+### Change Programming Language
+Update `preferredLanguage` in user profile:
+- Python, JavaScript, Java, C++, etc.
+
+### Adjust Token Budget
+In `app.js`, modify the history limit:
+```javascript
+const recentHistory = conversationHistory.slice(-10); // Change -10 to your preference
+```
+
+---
+
+## 🐛 Troubleshooting
+
+### "Firebase initialization error"
+- Check that `__firebase_config` values are correct
+- Verify Firestore is enabled in your project
+
+### "API request failed"
+- Verify your Gemini API key is valid
+- Check API key restrictions in Google Cloud Console
+- Ensure you have API quota available
+
+### "Authentication failed"
+- Verify your custom token is valid and not expired
+- For testing, use Anonymous authentication (see Step 4, Option B)
+
+### Messages not appearing
+- Check browser console for errors
+- Verify Firestore security rules allow read/write
+- Check that `__app_id` matches your Firestore structure
+
+---
+
+## 📝 Features
+
+✅ Persistent conversation history  
+✅ Personalized learning based on user profile  
+✅ Real-time message synchronization  
+✅ Socratic teaching method (guides rather than tells)  
+✅ Code block formatting with syntax highlighting  
+✅ Responsive design (mobile-friendly)  
+✅ Token budget management  
+✅ Gentle error handling  
+
+---
+
+## 🚧 Future Enhancements
+
+- [ ] User profile editing UI
+- [ ] Multiple conversation threads
+- [ ] Code execution sandbox
+- [ ] Progress tracking and achievements
+- [ ] Export conversation history
+- [ ] Voice input/output
+- [ ] Multi-language support
+
+---
+
+## 📄 License
+
+This project is open source and available for educational purposes.
+
+---
+
+## 🤝 Support
+
+For issues or questions:
+1. Check the Troubleshooting section
+2. Review Firebase Console for configuration errors
+3. Check browser console for JavaScript errors
+
+---
+
+**Happy Coding! 🎉**
