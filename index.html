@@ -14,57 +14,59 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+            flex-direction: column;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1.5rem;
+            text-align: center;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            font-size: 1rem;
+            opacity: 0.9;
         }
 
         .container {
-            width: 100%;
+            flex: 1;
             max-width: 900px;
-            height: 90vh;
+            margin: 2rem auto;
+            width: 90%;
             background: white;
-            border-radius: 20px;
+            border-radius: 15px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
 
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 24px;
-            font-weight: 600;
-        }
-
-        .header p {
-            font-size: 14px;
-            opacity: 0.9;
-            margin-top: 5px;
-        }
-
-        .chat-container {
+        #chat-container {
             flex: 1;
+            padding: 2rem;
             overflow-y: auto;
-            padding: 20px;
-            background: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            min-height: 400px;
+            max-height: 500px;
         }
 
         .message {
-            margin-bottom: 20px;
             display: flex;
-            animation: fadeIn 0.3s ease-in;
+            animation: slideIn 0.3s ease-out;
         }
 
-        @keyframes fadeIn {
+        @keyframes slideIn {
             from {
                 opacity: 0;
                 transform: translateY(10px);
@@ -85,53 +87,50 @@
 
         .message-content {
             max-width: 70%;
-            padding: 15px 20px;
-            border-radius: 18px;
+            padding: 1rem 1.5rem;
+            border-radius: 15px;
             line-height: 1.6;
-            word-wrap: break-word;
         }
 
         .message.user .message-content {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #667eea;
             color: white;
-            border-bottom-right-radius: 4px;
         }
 
         .message.assistant .message-content {
-            background: white;
+            background: #f0f0f0;
             color: #333;
-            border: 1px solid #e0e0e0;
-            border-bottom-left-radius: 4px;
         }
 
         .message-content pre {
             background: #2d2d2d;
             color: #f8f8f2;
-            padding: 15px;
+            padding: 1rem;
             border-radius: 8px;
             overflow-x: auto;
-            margin: 10px 0;
+            margin: 0.5rem 0;
         }
 
         .message-content code {
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
         }
 
-        .input-container {
-            padding: 20px;
-            background: white;
+        .input-area {
+            padding: 1.5rem;
+            background: #f9f9f9;
             border-top: 1px solid #e0e0e0;
             display: flex;
-            gap: 10px;
+            gap: 1rem;
+            align-items: center;
         }
 
         #user-input {
             flex: 1;
-            padding: 15px;
+            padding: 1rem;
             border: 2px solid #e0e0e0;
             border-radius: 25px;
-            font-size: 15px;
+            font-size: 1rem;
             outline: none;
             transition: border-color 0.3s;
         }
@@ -141,49 +140,55 @@
         }
 
         #send-btn {
-            padding: 15px 30px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #667eea;
             color: white;
             border: none;
+            padding: 1rem 2rem;
             border-radius: 25px;
-            font-size: 15px;
-            font-weight: 600;
+            font-size: 1rem;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: background 0.3s;
         }
 
         #send-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        #send-btn:active {
-            transform: translateY(0);
+            background: #5568d3;
         }
 
         #send-btn:disabled {
             background: #ccc;
             cursor: not-allowed;
-            transform: none;
         }
 
-        .loading {
+        #loading {
             display: none;
             text-align: center;
-            padding: 10px;
+            padding: 1rem;
             color: #667eea;
-            font-style: italic;
         }
 
-        .loading.active {
+        #loading.active {
             display: block;
         }
 
-        /* Responsive Design */
+        .loading-dots {
+            display: inline-block;
+        }
+
+        .loading-dots::after {
+            content: '.';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
         @media (max-width: 768px) {
             .container {
-                height: 100vh;
-                border-radius: 0;
+                margin: 1rem auto;
+                width: 95%;
             }
 
             .message-content {
@@ -191,35 +196,24 @@
             }
 
             .header h1 {
-                font-size: 20px;
-            }
-
-            #send-btn {
-                padding: 15px 20px;
+                font-size: 1.5rem;
             }
         }
     </style>
 </head>
 <body>
+    <div class="header">
+        <h1>🎓 AI Coding Tutor</h1>
+        <p>Learn to code through guided discovery</p>
+    </div>
+
     <div class="container">
-        <div class="header">
-            <h1>🎓 AI Coding Tutor</h1>
-            <p>Learn to code through guided discovery</p>
+        <div id="chat-container"></div>
+        <div id="loading">
+            <span class="loading-dots">Thinking</span>
         </div>
-
-        <div class="chat-container" id="chat-container">
-            <!-- Messages will be dynamically inserted here -->
-        </div>
-
-        <div class="loading" id="loading">Tutor is thinking...</div>
-
-        <div class="input-container">
-            <input 
-                type="text" 
-                id="user-input" 
-                placeholder="Ask a coding question or paste your code..."
-                autocomplete="off"
-            >
+        <div class="input-area">
+            <input type="text" id="user-input" placeholder="Ask a coding question or paste your code...">
             <button id="send-btn">Send</button>
         </div>
     </div>
@@ -229,9 +223,27 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
-    <!-- Configuration -->
-    <script src="config.js"></script>
-    
+    <!-- Inline Configuration -->
+    <script>
+        // Configuration - This can be safely public for Firebase
+        const __firebase_config = {
+            apiKey: "AIzaSyA18ZZ-uo60Y4sOKz22DAbvFgg1XSD59GY",
+            authDomain: "ai-coding-tutor-69744.firebaseapp.com",
+            databaseURL: "https://ai-coding-tutor-69744-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "ai-coding-tutor-69744",
+            storageBucket: "ai-coding-tutor-69744.firebasestorage.app",
+            messagingSenderId: "935763587036",
+            appId: "1:935763587036:web:43dfc6957bb176b089e919",
+            measurementId: "G-2VENMWP1TQ"
+        };
+
+        const __app_id = "coding_tutor_app";
+        
+        // IMPORTANT: Replace this with your actual Gemini API key locally
+        // For Vercel deployment, you'll inject this via environment variable
+        const __gemini_api_key = "AIzaSyDW7fEVUh1L8X-PEclfqXjR39JZOOSeqA0";
+    </script>
+
     <!-- Application Logic -->
     <script src="app.js"></script>
 </body>
