@@ -69,3 +69,5 @@ node_modules/
 .dataconnect
 config.js
 public/config.js
+config.js
+public/config.js
