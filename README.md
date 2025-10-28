@@ -19,7 +19,7 @@ An intelligent coding tutor web application that uses the Socratic method to hel
 ## 🚀 Live Demo
 
 - **Firebase Hosting:** [https://ai-coding-tutor-69744.web.app](https://ai-coding-tutor-69744.web.app)
-- **Vercel Deployment:** (https://ai-coding-tutor-one.vercel.app/)
+- **Vercel Deployment:** https://ai-coding-tutor-one.vercel.app
 
 ## 🛠️ Tech Stack
 
